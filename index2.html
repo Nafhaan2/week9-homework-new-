@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fire Data Visualizations</title>
+  
+  <!-- Include Vega and Vega-Lite libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  
+  <!-- Add custom CSS for styling -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #4CAF50;
+      padding: 20px;
+      text-align: center;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #4CAF50;
+      font-size: 1.75em;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .visualization-container {
+      margin-bottom: 40px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header section -->
+  <header>
+    <h1>Fire Data Visualizations</h1>
+  </header>
+
+  <!-- Main content section -->
+  <div class="content">
+    
+    <!-- About section for the bar chart -->
+    <div class="visualization-container">
+      <h2>Total Fire Radiative Power (FRP) by Date (with Day/Night Filter)</h2>
+      <p><strong>About This Visualization:</strong><br>
+      This bar chart shows the total Fire Radiative Power (FRP) over time, aggregated by date. Each bar represents the total FRP detected on a specific day, with colors indicating whether the fire detection occurred during the day (red) or night (blue). The chart is useful for tracking daily fire intensity and observing patterns between day and night fire activity.
+      <br><strong>Data source:</strong> MODIS Active Fire Detections from NASA FIRMS (Fire Information for Resource Management System).</p>
+
+      <!-- User guide for bar chart -->
+      <p><strong>How to Use:</strong><br>
+      - Use the dropdown menu to filter the data by day or night detections.<br>
+      - Hover over each bar to see the exact date, total FRP, and whether the fire was detected during the day or night.</p>
+
+      <!-- Container for the first visualization (Total FRP by Date with Day/Night Filter) -->
+      <div id="vis1"></div>
+    </div>
+
+    <!-- About section for the map visualization -->
+    <div class="visualization-container">
+      <h2>Map of Wildfire Incidents in Australia</h2>
+      <p><strong>About This Visualization:</strong><br>
+      This interactive map displays wildfire incidents across Australia using satellite data from the MODIS (Moderate Resolution Imaging Spectroradiometer) instrument. Each point on the map represents a detected fire, with the size and color intensity indicating the fire's brightness temperature.
+      <br><strong>Data source:</strong> MODIS Active Fire Detections extracted from NASA FIRMS (Fire Information for Resource Management System).</p>
+
+      <!-- User guide for the map -->
+      <p><strong>How to Use:</strong><br>
+      - Use the dropdown menu to filter fire detections by state (or select "All Australia" to view all fires).<br>
+      - Hover over any fire point to view detailed information, including the date, brightness, confidence level, satellite, and instrument.<br>
+      - You can zoom in and out using your mouse or the zoom feature to explore different areas more closely.</p>
+
+      <!-- Container for the second visualization (Map of Fires in Australia with Brightness) -->
+      <div id="vis2"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer section -->
+  <footer>
+    <p>&copy; 2024 Fire Data Visualization Project</p>
+  </footer>
+
+  <!-- Embed the first Vega-Lite visualization (Total FRP by Date) -->
+  <script type="text/javascript">
+    var vlSpec1 = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "description": "Total FRP by Date with Day/Night Filter",
+      "width": 600,
+      "height": 400,
+      "data": {
+        "url": "https://raw.githubusercontent.com/Nafhaan2/week9-homework-new-/main/fire_archive_M6_96619.csv",
+        "format": {"type": "csv"}
+      },
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "acq_date",
+          "type": "temporal",
+          "title": "Acquisition Date",
+          "timeUnit": "yearmonthdate",
+          "axis": {
+            "labelAngle": 45,
+            "format": "%b %d, %Y"
+          }
+        },
+        "y": {
+          "field": "frp",
+          "type": "quantitative",
+          "aggregate": "sum",
+          "title": "Total Fire Radiative Power (FRP)"
+        },
+        "color": {
+          "field": "daynight",
+          "type": "nominal",
+          "title": "Day/Night",
+          "scale": {
+            "domain": ["D", "N"],  
+            "range": ["#FF5733", "#3498DB"]  // Custom colors: Red for Day, Blue for Night
+          }
+        },
+        "tooltip": [
+          {"field": "acq_date", "type": "temporal", "title": "Date"},
+          {"field": "frp", "type": "quantitative", "aggregate": "sum", "title": "Total FRP"},
+          {"field": "daynight", "type": "nominal", "title": "Day/Night"}
+        ]
+      },
+      "selection": {
+        "daynight_filter": {
+          "type": "single",
+          "fields": ["daynight"],
+          "bind": {
+            "input": "select",
+            "options": [null, "D", "N"],
+            "labels": ["All", "Day", "Night"],
+            "name": "Select Day/Night: "
+          }
+        }
+      },
+      "transform": [
+        {"filter": {"selection": "daynight_filter"}}
+      ]
+    };
+
+    vegaEmbed('#vis1', vlSpec1).catch(console.error);
+  </script>
+
+  <!-- Embed the second Vega-Lite visualization (Map of Fires in Australia) -->
+  <script type="text/javascript">
+    var vlSpec2 = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "width": 800,
+      "height": 600,
+      "projection": {"type": "equirectangular"},
+      "params": [
+        {
+          "name": "state_selection",
+          "value": "All Australia",
+          "bind": {
+            "input": "select",
+            "options": [
+              "All Australia",
+              "New South Wales",
+              "Victoria",
+              "Queensland",
+              "Western Australia",
+              "South Australia",
+              "Tasmania",
+              "Northern Territory",
+              "Australian Capital Territory"
+            ]
+          }
+        }
+      ],
+      "layer": [
+        {
+          "data": {
+            "url": "https://raw.githubusercontent.com/tonywr71/GeoJson-Data/refs/heads/master/australian-states.json",
+            "format": {"type": "json", "property": "features"}
+          },
+          "transform": [
+            {"calculate": "datum.properties.STATE_NAME", "as": "state_name"}
+          ],
+          "mark": {"type": "geoshape", "fill": "lightgray", "stroke": "white"}
+        },
+        {
+          "data": {
+            "url": "https://raw.githubusercontent.com/Nafhaan2/week9-homework-new-/refs/heads/main/fire_archive_M6_96619.csv"
+          },
+          "transform": [
+            {
+              "filter": "state_selection == 'All Australia' || datum.state == state_selection"
+            }
+          ],
+          "mark": {"type": "circle", "opacity": 0.8},
+          "encoding": {
+            "longitude": {"field": "longitude", "type": "quantitative"},
+            "latitude": {"field": "latitude", "type": "quantitative"},
+            "size": {
+              "field": "brightness",
+              "type": "quantitative",
+              "scale": {"range": [10, 300]},
+              "legend": {"title": "Brightness"}
+            },
+            "color": {
+              "field": "brightness",
+              "type": "quantitative",
+              "scale": {"domain": [300, 400], "range": ["#FFCCCB", "#8B0000"]},
+              "legend": {"title": "Brightness"}
+            },
+            "tooltip": [
+              {
+                "field": "acq_date",
+                "type": "temporal",
+                "title": "Date",
+                "format": "%B %d, %Y"
+              },
+              {
+                "field": "brightness",
+                "type": "quantitative",
+                "title": "Brightness",
+                "format": ".1f"
+              },
+              {
+                "field": "confidence",
+                "type": "quantitative",
+                "title": "Confidence"
+              },
+              {"field": "satellite", "type": "nominal", "title": "Satellite"},
+              {"field": "instrument", "type": "nominal", "title": "Instrument"}
+            ]
+          }
+        }
+      ],
+      "view": {"fill": "#ADD8E6"},
+      "selection": {"zoom": {"type": "interval", "bind": "scales"}}
+    };
+
+    vegaEmbed('#vis2', vlSpec2).catch(console.error);
+  </script>
+
+</body>
+</html>
